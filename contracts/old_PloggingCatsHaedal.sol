@@ -3,21 +3,20 @@
 pragma solidity ^0.8.7;
 
 import "contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "contracts/utils/Counters.sol";
 import "contracts/access/Ownable.sol";
 
 contract PloggingCatsHaedal is ERC721Enumerable, Ownable {
-    using Counters for Counters.Counter;
     using Strings for uint256;
-
-    Counters.Counter private _tokenIds;
 
     string public baseURI;
     string public baseExtension = ".json";
-    uint256 public cost = 25 ether;
-    uint256 public maxSupply = 2640;
-    uint256 public maxMintAmount = 120;
+    uint256 public cost = 0.013674 ether;
+    uint256 public presaleCost = 0.03 ether;
+    uint256 public maxSupply = 3000;
+    uint256 public maxMintAmount = 10;
     bool public paused = false;
+    mapping(address => bool) public whitelisted;
+    mapping(address => bool) public presaleWallets;
 
     constructor(
         string memory _name,
@@ -25,7 +24,7 @@ contract PloggingCatsHaedal is ERC721Enumerable, Ownable {
         string memory _initBaseURI
     ) ERC721(_name, _symbol) {
         setBaseURI(_initBaseURI);
-        //mint(msg.sender, teamVol);
+        mint(msg.sender, 20);
     }
 
     // internal
@@ -42,9 +41,17 @@ contract PloggingCatsHaedal is ERC721Enumerable, Ownable {
         require(supply + _mintAmount <= maxSupply);
 
         if (msg.sender != owner()) {
-            require(msg.value >= cost * _mintAmount);
+            if (whitelisted[msg.sender] != true) {
+                if (presaleWallets[msg.sender] != true) {
+                    //general public
+                    require(msg.value >= cost * _mintAmount);
+                } else {
+                    //presale
+                    require(msg.value >= presaleCost * _mintAmount);
+                }
+            }
         }
-        
+
         for (uint256 i = 1; i <= _mintAmount; i++) {
             _safeMint(_to, supply + i);
         }
@@ -89,22 +96,53 @@ contract PloggingCatsHaedal is ERC721Enumerable, Ownable {
     }
 
     //only owner
-    function airdropNfts(address[] calldata wAddresses) public onlyOwner {
-        for (uint256 i=0; i<wAddresses.length; i++) {
-            mint(wAddresses[i], 1);
-        }
-    }
-
     function setCost(uint256 _newCost) public onlyOwner {
         cost = _newCost;
+    }
+
+    function setPresaleCost(uint256 _newCost) public onlyOwner {
+        presaleCost = _newCost;
+    }
+
+    function setmaxMintAmount(uint256 _newmaxMintAmount) public onlyOwner {
+        maxMintAmount = _newmaxMintAmount;
     }
 
     function setBaseURI(string memory _newBaseURI) public onlyOwner {
         baseURI = _newBaseURI;
     }
 
+    function setBaseExtension(string memory _newBaseExtension)
+        public
+        onlyOwner
+    {
+        baseExtension = _newBaseExtension;
+    }
+
     function pause(bool _state) public onlyOwner {
         paused = _state;
+    }
+
+    function whitelistUser(address _user) public onlyOwner {
+        whitelisted[_user] = true;
+    }
+
+    function removeWhitelistUser(address _user) public onlyOwner {
+        whitelisted[_user] = false;
+    }
+
+    function addPresaleUser(address _user) public onlyOwner {
+        presaleWallets[_user] = true;
+    }
+
+    function add100PresaleUsers(address[100] memory _users) public onlyOwner {
+        for (uint256 i = 0; i < 2; i++) {
+            presaleWallets[_users[i]] = true;
+        }
+    }
+
+    function removePresaleUser(address _user) public onlyOwner {
+        presaleWallets[_user] = false;
     }
 
     function withdraw() public payable onlyOwner {
