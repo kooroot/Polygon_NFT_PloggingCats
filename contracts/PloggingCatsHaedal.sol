@@ -2,9 +2,9 @@
 
 pragma solidity ^0.8.7;
 
-import "contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "contracts/utils/Counters.sol";
-import "contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelincontracts/utils/Counters.sol";
+import "@openzeppelincontracts/access/Ownable.sol";
 
 contract PloggingCatsHaedal is ERC721Enumerable, Ownable {
     using Counters for Counters.Counter;
@@ -25,7 +25,6 @@ contract PloggingCatsHaedal is ERC721Enumerable, Ownable {
         string memory _initBaseURI
     ) ERC721(_name, _symbol) {
         setBaseURI(_initBaseURI);
-        //mint(msg.sender, teamVol);
     }
 
     // internal
@@ -97,6 +96,14 @@ contract PloggingCatsHaedal is ERC721Enumerable, Ownable {
 
     function setCost(uint256 _newCost) public onlyOwner {
         cost = _newCost;
+    }
+
+    function setmaxMintAmount(uint256 _newmaxMintAmount) public onlyOwner {
+        maxMintAmount = _newmaxMintAmount;
+    }
+
+    function setmaxSupply(uint256 _newmaxSupply) public onlyOwner {
+        maxSupply = _newmaxSupply;
     }
 
     function setBaseURI(string memory _newBaseURI) public onlyOwner {
